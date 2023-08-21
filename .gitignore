@@ -206,3 +206,6 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node,flutter
+
+# key file for the db
+.key

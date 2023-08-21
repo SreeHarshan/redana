@@ -20,12 +20,17 @@ class _userhome extends State<UserHome> {
     //get the hotels from the database
 
     //temp add hotels
-    hotels.add(Hotel("Hotel A", ["Dish A", "Dish B", "Dish C"]));
-    hotels.add(Hotel("Hotel B", ["Dish A", "Dish B", "Dish C"]));
-    hotels.add(Hotel("Hotel C", ["Dish A", "Dish B", "Dish C"]));
-    hotels.add(Hotel("Hotel D", ["Dish A", "Dish B", "Dish C"]));
-    hotels.add(Hotel("Hotel E", ["Dish A", "Dish B", "Dish C"]));
-    hotels.add(Hotel("Hotel F", ["Dish A", "Dish B", "Dish C"]));
+    List<Dish> Dishes = [];
+    Dishes.add(Dish("Dish A", 100, true));
+    Dishes.add(Dish("Dish B", 200, false));
+    Dishes.add(Dish("Dish C", 300, true));
+
+    hotels.add(Hotel("Hotel A", Dishes));
+    hotels.add(Hotel("Hotel B", Dishes));
+    hotels.add(Hotel("Hotel C", Dishes));
+    hotels.add(Hotel("Hotel D", Dishes));
+    hotels.add(Hotel("Hotel E", Dishes));
+    hotels.add(Hotel("Hotel F", Dishes));
     //Convert hotels to cards
     for (var hotel in hotels) {
       hotels_card.add(HotelCard(hotel));
@@ -66,7 +71,6 @@ class _userhome extends State<UserHome> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 15.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Container(
               margin: const EdgeInsets.only(left: 15),
