@@ -1,26 +1,8 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
 
-// Dish class
-class Dish {
-  String name;
-  int price;
-  bool vegan;
-
-  Dish(this.name, this.price, this.vegan);
-}
-
-// Hotel class
-class Hotel {
-  String name;
-  List<Dish> dishes;
-
-  Hotel(this.name, this.dishes);
-
-  factory Hotel.fromJson(dynamic json) {
-    return Hotel(json['name'] as String, json["dishes"] as List<Dish>);
-  }
-}
+import "Schema.dart";
+import 'Cart.dart';
 
 // ignore: must_be_immutable
 class HotelCard extends StatefulWidget {
@@ -53,7 +35,7 @@ class _hotelcard extends State<HotelCard> {
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 height: 100,
                 child: Image.asset(
-                  "hotel_icon.jpg",
+                  "assets/hotel_icon.jpg",
                   width: 80,
                   height: 80,
                 ),
@@ -88,6 +70,41 @@ class _hotelpage extends State<HotelPage> {
   // Contains all the items in cart
   List<Dish> cart = [];
 
+  void _showCloseDialog(BuildContext context) {
+    // Check if the cart is not empty
+    if (cart.isNotEmpty) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+                title: const Text("Warning"),
+                content: const Text(
+                    "Closing this page will remove the items from your cart!!"),
+                actions: <Widget>[
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Cancel"),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Ok"),
+                  )
+                ],
+              ));
+    }
+    // Cart is empty so just close the page
+    else {
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,14 +117,16 @@ class _hotelpage extends State<HotelPage> {
         leading: IconButton(
           // Back to home screen button
           // TODO check if cart is empty and go back
-          onPressed: () => {Navigator.pop(context)},
+          onPressed: () => _showCloseDialog(context),
           icon: const Icon(Icons.arrow_back), color: Colors.white,
         ),
         actions: [
           // Cart button
-          // TODO implement cart checkout page
           IconButton(
-              onPressed: () => {},
+              onPressed: () => {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Cart(cart)))
+                  },
               icon: const Icon(Icons.trolley),
               color: Colors.white),
         ],
@@ -117,6 +136,7 @@ class _hotelpage extends State<HotelPage> {
           child: ListView.builder(
               shrinkWrap: true,
               itemCount: widget.hotel.dishes.length,
+              physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
                 return Card(
                     elevation: 4,
@@ -126,6 +146,7 @@ class _hotelpage extends State<HotelPage> {
                       height: 80,
                       child: Stack(
                         children: <Widget>[
+                          // Tile containing name price color
                           ListTile(
                             leading: Stack(
                               alignment: Alignment.center,
@@ -167,8 +188,9 @@ class _hotelpage extends State<HotelPage> {
                                         });
                                       },
                                       child: Container(
-                                        decoration:
-                                            BoxDecoration(border: Border.all()),
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.red)),
                                         margin: const EdgeInsets.all(5),
                                         width: 90,
                                         height: 35,
@@ -178,6 +200,7 @@ class _hotelpage extends State<HotelPage> {
                                                 child: Text(
                                               "Remove",
                                               style: TextStyle(
+                                                  color: Colors.red,
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.bold),
                                             ))),
@@ -195,8 +218,9 @@ class _hotelpage extends State<HotelPage> {
                                         });
                                       },
                                       child: Container(
-                                        decoration:
-                                            BoxDecoration(border: Border.all()),
+                                        decoration: BoxDecoration(
+                                            border:
+                                                Border.all(color: Colors.red)),
                                         margin: const EdgeInsets.all(5),
                                         width: 70,
                                         height: 35,
@@ -205,17 +229,23 @@ class _hotelpage extends State<HotelPage> {
                                             Align(
                                                 alignment: Alignment.topRight,
                                                 child: Container(
-                                                  width: 15,
-                                                  height: 15,
+                                                  width: 18,
+                                                  height: 18,
                                                   decoration:
                                                       const BoxDecoration(
                                                           border: Border(
-                                                              left:
-                                                                  BorderSide(),
-                                                              bottom:
-                                                                  BorderSide())),
+                                                              left: BorderSide(
+                                                                  color: Colors
+                                                                      .red),
+                                                              bottom: BorderSide(
+                                                                  color: Colors
+                                                                      .red))),
                                                   child: const Center(
-                                                      child: Text("+")),
+                                                      child: Text(
+                                                    "+",
+                                                    style: TextStyle(
+                                                        color: Colors.red),
+                                                  )),
                                                 )),
                                             const Align(
                                                 alignment: Alignment.bottomLeft,
@@ -225,6 +255,7 @@ class _hotelpage extends State<HotelPage> {
                                                     child: Text(
                                                       "Add",
                                                       style: TextStyle(
+                                                          color: Colors.red,
                                                           fontSize: 15,
                                                           fontWeight:
                                                               FontWeight.bold),

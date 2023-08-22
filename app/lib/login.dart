@@ -28,7 +28,7 @@ class Login extends StatelessWidget {
       children: [
         Image.asset(
           // logo
-          "Redana_logo.jpeg",
+          "assets/Redana_logo.jpeg",
           width: 200,
           height: 200,
         ),
@@ -52,8 +52,8 @@ class Login extends StatelessWidget {
                   children: <Widget>[
                     Container(
                       // decoration: BoxDecoration(color: Colors.blue),
-                      child:
-                          Image.asset("google_icon.png", width: 48, height: 48),
+                      child: Image.asset("assets/google_icon.png",
+                          width: 48, height: 48),
                     ),
                     const SizedBox(
                       width: 5.0,

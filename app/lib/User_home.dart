@@ -1,7 +1,8 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
 
-import 'Card.dart';
+import 'Hotel.dart';
+import 'Schema.dart';
 
 class UserHome extends StatefulWidget {
   const UserHome({super.key});
@@ -81,6 +82,7 @@ class _userhome extends State<UserHome> {
             ),
             ListView.builder(
                 shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: hotels_card.length,
                 itemBuilder: (context, index) {
                   return hotels_card[index];
