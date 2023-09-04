@@ -58,7 +58,7 @@ class _cart extends State<Cart> {
           label: Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: const Text(
-              "Reserve",
+              "Place Order",
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
           ));
@@ -145,18 +145,30 @@ class _cart extends State<Cart> {
                                           child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceEvenly,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
                                             children: <Widget>[
                                               GestureDetector(
                                                   onTap: () =>
                                                       _decrease_quantity(index),
                                                   child: const Text(
                                                     "-",
+                                                    style:
+                                                        TextStyle(fontSize: 15),
                                                   )),
-                                              Text("${q[index]}"),
+                                              Text(
+                                                "${q[index]}",
+                                                style: const TextStyle(
+                                                    fontSize: 15),
+                                              ),
                                               GestureDetector(
                                                 onTap: () =>
                                                     _increase_quantity(index),
-                                                child: const Text("+"),
+                                                child: const Text(
+                                                  "+",
+                                                  style:
+                                                      TextStyle(fontSize: 15),
+                                                ),
                                               ),
                                             ],
                                           ),

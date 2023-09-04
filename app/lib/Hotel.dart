@@ -70,6 +70,13 @@ class _hotelpage extends State<HotelPage> {
   // Contains all the items in cart
   List<Dish> cart = [];
 
+  @override
+  void initState() {
+    widget.hotel.dishes =
+        widget.hotel.get_dishes().whenComplete(() => print("fetched dishes"));
+    super.initState();
+  }
+
   void _showCloseDialog(BuildContext context) {
     // Check if the cart is not empty
     if (cart.isNotEmpty) {
@@ -116,7 +123,6 @@ class _hotelpage extends State<HotelPage> {
         ),
         leading: IconButton(
           // Back to home screen button
-          // TODO check if cart is empty and go back
           onPressed: () => _showCloseDialog(context),
           icon: const Icon(Icons.arrow_back), color: Colors.white,
         ),
@@ -133,140 +139,159 @@ class _hotelpage extends State<HotelPage> {
       ),
       body: SingleChildScrollView(
           // Display the dishes available in the hotel
-          child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: widget.hotel.dishes.length,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                return Card(
-                    elevation: 4,
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 15, horizontal: 10),
-                    child: SizedBox(
-                      height: 80,
-                      child: Stack(
-                        children: <Widget>[
-                          // Tile containing name price color
-                          ListTile(
-                            leading: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Icon(
-                                  Icons.crop_square_sharp,
-                                  color:
-                                      // check vegan
-                                      widget.hotel.dishes[index].vegan
-                                          ? Colors.green
-                                          : Colors.red,
-                                  size: 32,
+          child: FutureBuilder(
+              future: widget.hotel.dishes,
+              builder:
+                  (BuildContext context, AsyncSnapshot<List<Dish>> snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(child: Text("There was an error"));
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: snapshot.data?.length,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      return Card(
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 10),
+                          child: SizedBox(
+                            height: 80,
+                            child: Stack(
+                              children: <Widget>[
+                                // Tile containing name price color
+                                ListTile(
+                                  leading: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.crop_square_sharp,
+                                        color:
+                                            // check vegan
+                                            snapshot.data![index].vegan
+                                                ? Colors.green
+                                                : Colors.red,
+                                        size: 32,
+                                      ),
+                                      Icon(Icons.circle,
+                                          color:
+                                              // check vegan
+                                              snapshot.data![index].vegan
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                          size: 13),
+                                    ],
+                                  ),
+                                  title: Text(snapshot.data![index].name),
+                                  subtitle:
+                                      Text("₹${snapshot.data![index].price}"),
                                 ),
-                                Icon(Icons.circle,
-                                    color:
-                                        // check vegan
-                                        widget.hotel.dishes[index].vegan
-                                            ? Colors.green
-                                            : Colors.red,
-                                    size: 13),
+
+                                // Check if it is already in cart
+                                cart.contains(snapshot.data![index])
+                                    ?
+                                    // Remove from cart
+                                    Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                cart.remove(
+                                                    snapshot.data![index]);
+                                              });
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color: Colors.red)),
+                                              margin: const EdgeInsets.all(5),
+                                              width: 90,
+                                              height: 35,
+                                              child: const Padding(
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Center(
+                                                      child: Text(
+                                                    "Remove",
+                                                    style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ))),
+                                            )),
+                                      )
+                                    :
+
+                                    // Add to cart
+                                    Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                cart.add(snapshot.data![index]);
+                                              });
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color: Colors.red)),
+                                              margin: const EdgeInsets.all(5),
+                                              width: 70,
+                                              height: 35,
+                                              child: Stack(
+                                                children: <Widget>[
+                                                  Align(
+                                                      alignment:
+                                                          Alignment.topRight,
+                                                      child: Container(
+                                                        width: 18,
+                                                        height: 18,
+                                                        decoration: const BoxDecoration(
+                                                            border: Border(
+                                                                left: BorderSide(
+                                                                    color: Colors
+                                                                        .red),
+                                                                bottom: BorderSide(
+                                                                    color: Colors
+                                                                        .red))),
+                                                        child: const Center(
+                                                            child: Text(
+                                                          "+",
+                                                          style: TextStyle(
+                                                              color:
+                                                                  Colors.red),
+                                                        )),
+                                                      )),
+                                                  const Align(
+                                                      alignment:
+                                                          Alignment.bottomLeft,
+                                                      child: Padding(
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                                  left: 10,
+                                                                  bottom: 5),
+                                                          child: Text(
+                                                            "Add",
+                                                            style: TextStyle(
+                                                                color:
+                                                                    Colors.red,
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold),
+                                                          ))),
+                                                ],
+                                              ),
+                                            )),
+                                      )
                               ],
                             ),
-                            title: Text(widget.hotel.dishes[index].name),
-                            subtitle:
-                                Text("₹${widget.hotel.dishes[index].price}"),
-                          ),
-
-                          // Check if it is already in cart
-                          cart.contains(widget.hotel.dishes[index])
-                              ?
-                              // Remove from cart
-                              Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          cart.remove(
-                                              widget.hotel.dishes[index]);
-                                        });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            border:
-                                                Border.all(color: Colors.red)),
-                                        margin: const EdgeInsets.all(5),
-                                        width: 90,
-                                        height: 35,
-                                        child: const Padding(
-                                            padding: EdgeInsets.all(5),
-                                            child: Center(
-                                                child: Text(
-                                              "Remove",
-                                              style: TextStyle(
-                                                  color: Colors.red,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.bold),
-                                            ))),
-                                      )),
-                                )
-                              :
-
-                              // Add to cart
-                              Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          cart.add(widget.hotel.dishes[index]);
-                                        });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            border:
-                                                Border.all(color: Colors.red)),
-                                        margin: const EdgeInsets.all(5),
-                                        width: 70,
-                                        height: 35,
-                                        child: Stack(
-                                          children: <Widget>[
-                                            Align(
-                                                alignment: Alignment.topRight,
-                                                child: Container(
-                                                  width: 18,
-                                                  height: 18,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                          border: Border(
-                                                              left: BorderSide(
-                                                                  color: Colors
-                                                                      .red),
-                                                              bottom: BorderSide(
-                                                                  color: Colors
-                                                                      .red))),
-                                                  child: const Center(
-                                                      child: Text(
-                                                    "+",
-                                                    style: TextStyle(
-                                                        color: Colors.red),
-                                                  )),
-                                                )),
-                                            const Align(
-                                                alignment: Alignment.bottomLeft,
-                                                child: Padding(
-                                                    padding: EdgeInsets.only(
-                                                        left: 10, bottom: 5),
-                                                    child: Text(
-                                                      "Add",
-                                                      style: TextStyle(
-                                                          color: Colors.red,
-                                                          fontSize: 15,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                    ))),
-                                          ],
-                                        ),
-                                      )),
-                                )
-                        ],
-                      ),
-                    ));
+                          ));
+                    });
               })),
     );
   }
