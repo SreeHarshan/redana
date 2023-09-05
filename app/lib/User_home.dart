@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as HTTP;
 import 'dart:convert' as convert;
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'Hotel.dart';
 import 'Schema.dart';
@@ -55,6 +56,12 @@ class _userhome extends State<UserHome> {
     hotels = get_hotels();
   }
 
+  Future<void> logout(context) async {
+    await GoogleSignIn().signOut();
+
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +79,7 @@ class _userhome extends State<UserHome> {
         backgroundColor: Colors.red,
         actions: <Widget>[
           IconButton(
-              onPressed: () => {Navigator.pop(context)},
+              onPressed: () => {logout(context)},
               icon: const Icon(
                 Icons.exit_to_app,
                 color: Colors.white,

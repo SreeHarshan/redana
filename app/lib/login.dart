@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'User_home.dart';
 
@@ -6,14 +7,23 @@ class Login extends StatelessWidget {
   const Login({super.key});
 
   // handle google auth
-  void signin(context) {
+  Future<void> signin(context) async {
     //TODO implement google auth login
+    try {
+      await GoogleSignIn().signIn().then((userdata) {
+        print(userdata);
+        go_to_home(context);
+      });
+    } catch (error) {
+      print(error);
+    }
 
     // temp go to home
-    go_to_home(context);
+    //go_to_home(context);
   }
 
   // switches to the home page
+  // ignore: non_constant_identifier_names
   void go_to_home(context) {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const UserHome()));
@@ -21,6 +31,12 @@ class Login extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    GoogleSignIn().isSignedIn().then(
+      (value) {
+        if (value) go_to_home(context);
+      },
+    );
+
     return Scaffold(
         body: Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -35,7 +51,7 @@ class Login extends StatelessWidget {
         const SizedBox(height: 40),
         GestureDetector(
             //sign in button
-            onTap: () => {go_to_home(context)},
+            onTap: () => {signin(context)},
             child: Center(
               child: Container(
                 margin: const EdgeInsets.only(top: 20),
@@ -50,11 +66,8 @@ class Login extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Container(
-                      // decoration: BoxDecoration(color: Colors.blue),
-                      child: Image.asset("assets/google_icon.png",
-                          width: 48, height: 48),
-                    ),
+                    Image.asset("assets/google_icon.png",
+                        width: 48, height: 48),
                     const SizedBox(
                       width: 5.0,
                     ),

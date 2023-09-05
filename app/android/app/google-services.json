@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "768840496729",
+    "project_id": "redana-test",
+    "storage_bucket": "redana-test.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:768840496729:android:158d793b2b8c84dfdf6348",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "768840496729-ngo3675k568bd8e6c3tfdud2klnngjr3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOKyMPyP_K2BixR4ChPUDxew2PX-uguJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "768840496729-5oqs6abmfcbbrl9c3l9c4cv7hfbja1l1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
