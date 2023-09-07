@@ -38,6 +38,12 @@ dependencies:
   device_preview: ^1.1.0
   http: ^1.1.0
   google_sign_in: ^6.1.5
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/Redana_logo.jpeg"
   
 dev_dependencies:
   flutter_test:

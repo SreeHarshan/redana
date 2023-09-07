@@ -9,31 +9,50 @@ class Login extends StatelessWidget {
   // handle google auth
   Future<void> signin(context) async {
     //TODO implement google auth login
+    GoogleSignInAccount? _useraccount;
+
+    //temp
+    //go_to_home(context, _useraccount);
     try {
       await GoogleSignIn().signIn().then((userdata) {
-        print(userdata);
-        go_to_home(context);
+        _useraccount = userdata!;
+        go_to_home(context, _useraccount);
       });
     } catch (error) {
       print(error);
     }
-
-    // temp go to home
-    //go_to_home(context);
   }
 
   // switches to the home page
   // ignore: non_constant_identifier_names
-  void go_to_home(context) {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const UserHome()));
+  void go_to_home(context, _useraccount) {
+    // Logged in snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content:
+            Center(child: Text('Logged in as ' + _useraccount.displayName)),
+        duration: const Duration(milliseconds: 1500),
+        width: 280.0,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8.0,
+          vertical: 5.0,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+    );
+    //switch to home page
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => UserHome(_useraccount)));
   }
 
   @override
   Widget build(BuildContext context) {
     GoogleSignIn().isSignedIn().then(
       (value) {
-        if (value) go_to_home(context);
+        if (value) go_to_home(context, GoogleSignIn().currentUser);
       },
     );
 
