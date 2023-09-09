@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as HTTP;
+import 'dart:convert' as convert;
 
 import 'Schema.dart';
+import 'global.dart';
 
 // ignore: must_be_immutable
 class Cart extends StatefulWidget {
   List<Dish> cart_items;
+  String? user_name, user_email, hotel_name;
 
-  Cart(this.cart_items, {super.key});
+  Cart(this.user_email, this.user_name, this.hotel_name, this.cart_items,
+      {super.key});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -45,6 +50,29 @@ class _cart extends State<Cart> {
     }
 
     return tot;
+  }
+
+  Future<void> order(context) async {
+    String api = "/order";
+    try {
+      var url = Uri.parse(server_address + api);
+      var body = {
+        "user_name": widget.user_name,
+        "user_email": widget.user_email,
+        "hotel_name": widget.hotel_name,
+        "order_items": [],
+      };
+      var response = HTTP
+          .post(url,
+              headers: <String, String>{
+                'Content-Type': 'application/json; charset=UTF-8',
+              },
+              body: convert.jsonEncode(body))
+          .whenComplete(() => () {});
+      //TODO complete this,ie, get the response
+    } catch (error) {
+      print(error);
+    }
   }
 
   //TODO remove this function and add widget directly
@@ -210,8 +238,6 @@ class _cart extends State<Cart> {
               : const Center(
                   child: Text("Oops, your cart is empty !"),
                 ),
-      //floatingActionButton: _reserve_button(context),
-      //floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

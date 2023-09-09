@@ -19,6 +19,13 @@ const port = 3000
 const fs = require('fs');
 const key = fs.readFileSync("key.txt").toString();
 
+// Sleep function
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 // Get all hotels
 app.get('/hotels',(req,res) => {
    
@@ -47,6 +54,38 @@ app.get("/dishes",(req,res)=>{
 
     res.send(data);
 })
+
+// Hotel login
+app.get('/hotellogin', async(req, res) => {
+    email = req.query.email
+    pass = req.query.pass
+    data = {}
+    console.log("Hotel login");
+
+    //temp return true
+    data["Success"] = true;
+    data["name"] = "Hotel name";
+
+    //temp add sleep
+    await sleep(5000);
+    
+    data["email"]=email;
+    res.send(data);
+})
+
+app.post("/order",(req,res)=>{
+    user_name = req.body.user_name;
+    user_email=req.body.user_email;
+    hotel_name=req.body.hotel_name;
+    order_items=req.body.order_items;
+
+    data = {}
+
+    //temp add
+    data["Success"] = true;
+
+    res.end(data);
+});
 
 
 // Temp root url

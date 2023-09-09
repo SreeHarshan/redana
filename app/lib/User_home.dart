@@ -1,5 +1,6 @@
 // ignore: file_names
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as HTTP;
 import 'dart:convert' as convert;
 import 'package:google_sign_in/google_sign_in.dart';
@@ -46,7 +47,8 @@ class _userhome extends State<UserHome> {
 
     //Convert hotels to cards
     for (var hotel in _hotels) {
-      hotels_card.add(HotelCard(hotel));
+      hotels_card.add(HotelCard(
+          widget.useraccount.email, widget.useraccount.displayName, hotel));
     }
 
     print("completed fetching hotels");
@@ -82,17 +84,18 @@ class _userhome extends State<UserHome> {
     );
 
     Navigator.pop(context);
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
-          if (scaffoldKey.currentState!.isDrawerOpen) {
-            scaffoldKey.currentState!.closeDrawer();
-          } else {
-            logout(context);
+          if (!scaffoldKey.currentState!.isDrawerOpen) {
+            SystemNavigator.pop(animated: true);
           }
+          // If drawer is open then close it
+          scaffoldKey.currentState!.closeDrawer();
           return false;
         },
         child: Scaffold(
@@ -118,7 +121,12 @@ class _userhome extends State<UserHome> {
                 trailing: const Icon(Icons.arrow_right),
                 leading: const Icon(Icons.settings),
                 onTap: () {},
-              )
+              ),
+              ListTile(
+                title: const Text("Logout"),
+                leading: const Icon(Icons.exit_to_app),
+                onTap: () => {logout(context)},
+              ),
             ],
           )),
 
@@ -138,14 +146,6 @@ class _userhome extends State<UserHome> {
                     ));
               },
             ),
-            actions: <Widget>[
-              IconButton(
-                  onPressed: () => {logout(context)},
-                  icon: const Icon(
-                    Icons.exit_to_app,
-                    color: Colors.white,
-                  ))
-            ],
           ),
           body: SingleChildScrollView(
             padding:

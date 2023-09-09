@@ -7,8 +7,9 @@ import 'Cart.dart';
 // ignore: must_be_immutable
 class HotelCard extends StatefulWidget {
   Hotel hotel;
+  String? user_name, user_email;
 
-  HotelCard(this.hotel, {super.key});
+  HotelCard(this.user_email, this.user_name, this.hotel, {super.key});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -23,8 +24,11 @@ class _hotelcard extends State<HotelCard> {
 
     return GestureDetector(
         onTap: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => HotelPage(hotel)));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      HotelPage(widget.user_email, widget.user_name, hotel)));
         },
         child: Card(
           elevation: 4,
@@ -56,13 +60,14 @@ class _hotelcard extends State<HotelCard> {
 
 // ignore: must_be_immutable
 class HotelPage extends StatefulWidget {
+  String? user_name, user_email;
   @override
   // ignore: library_private_types_in_public_api
   _hotelpage createState() => _hotelpage();
 
   Hotel hotel;
 
-  HotelPage(this.hotel, {super.key});
+  HotelPage(this.user_email, this.user_name, this.hotel, {super.key});
 }
 
 // ignore: camel_case_types
@@ -130,8 +135,11 @@ class _hotelpage extends State<HotelPage> {
           // Cart button
           IconButton(
               onPressed: () => {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Cart(cart)))
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => Cart(widget.user_email,
+                                widget.user_name, widget.hotel.name, cart)))
                   },
               icon: const Icon(Icons.trolley),
               color: Colors.white),
