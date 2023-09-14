@@ -209,3 +209,6 @@ dist
 
 # key file for the db
 key.txt
+
+# firebase admin key
+firebase.json

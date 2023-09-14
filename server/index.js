@@ -19,12 +19,20 @@ const port = 3000
 const fs = require('fs');
 const key = fs.readFileSync("key.txt").toString();
 
+// firebase
+const firebase = require('firebase-admin');
+const {initializeApp} = require('firebase-admin/app');
+const {applicationDefault} = require('firebase-admin/app');
+
 // Sleep function
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
+
+// Firebase app for sending notifs
+firebaseapp = initializeApp({credential:applicationDefault()});
 
 // Get all hotels
 app.get('/hotels',(req,res) => {
@@ -64,16 +72,18 @@ app.get('/hotellogin', async(req, res) => {
 
     //temp return true
     data["Success"] = true;
-    data["name"] = "Hotel name";
+    data["name"] = "hotel b";
 
     //temp add sleep
-    await sleep(5000);
+    await sleep(1000);
     
     data["email"]=email;
     res.send(data);
 })
 
+// User order
 app.post("/order",(req,res)=>{
+    console.log("post order");
     user_name = req.body.user_name;
     user_email=req.body.user_email;
     hotel_name=req.body.hotel_name;
@@ -81,12 +91,74 @@ app.post("/order",(req,res)=>{
 
     data = {}
 
-    //temp add
-    data["Success"] = true;
+    //send firebase notification
+    const message = {
+  data: {
+    'user_name': user_name,
+    'hotel_name':hotel_name,
+    'order_items':order_items,
+  },
+  topic: 'order'
+};
+console.log(message);
 
-    res.end(data);
+// Send a message to devices subscribed to the provided topic.
+    firebase.messaging().send(message)
+    .then((response) => {
+    // Response is a message ID string.
+    console.log('Successfully sent message:', response);
+        data["Success"] = true;
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.write(JSON.stringify(data));
+    res.end();
+
+  })
+  .catch((error) => {
+    console.log('Error sending message:', error);
+      data["Success"] = false;
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.write(JSON.stringify(data));
+    res.end();
+  });
 });
 
+// Get all hotel orders 
+app.get("/hotelorders",(req,res)=>{
+    hotel_name = req.query.hotel_name;
+    
+    data = {}
+
+    // temp create data
+    data["123"] = {"user_name":"Sree Harshan","order_items":{"Chicken Biriyani":2,"Chicken Rice":1},"total":280,"completed":true}  
+    data["124"] = {"user_name":"Dinesh","order_items":{"Chicken Biriyani":4},"total":400,"completed":false}  
+
+    res.send(data);
+});
+
+
+
+// temp send firebase notif
+app.get("/notif",(req,res)=>{
+     //send firebase notification
+    const message = {
+  data: {
+    'user_name': 'Name',
+    'hotel_name':"Hotel name",
+  },
+  topic: 'order'
+};
+
+// Send a message to devices subscribed to the provided topic.
+    firebase.messaging().send(message)
+    .then((response) => {
+    // Response is a message ID string.
+    console.log('Successfully sent message:', response);
+  })
+  .catch((error) => {
+    console.log('Error sending message:', error);
+  });
+    res.send({"Value":"Success"});
+});
 
 // Temp root url
 app.get('/', (req, res) => {
@@ -97,4 +169,9 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
+
+app.on("listening",()=>{
+    console.log("Listening");
+});
+
 

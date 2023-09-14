@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart';
 
@@ -8,7 +9,10 @@ void main() {
   runApp(const MyApp());
 }*/
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  print("started app");
+  await Firebase.initializeApp().whenComplete(() => print("init firebase"));
   runApp(DevicePreview(
     enabled: true,
     builder: (context) => App(), // Wrap your app

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as HTTP;
 import 'dart:convert' as convert;
@@ -231,89 +232,117 @@ class _hotellogin extends State<HotelLogin> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      Scaffold(
-          body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset(
-            // logo
-            "assets/Redana_logo.jpeg",
-            width: 200,
-            height: 200,
-          ),
-          const SizedBox(height: 40),
-          const Text(
-            "Hotel Login",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Container(
-              margin: const EdgeInsets.only(top: 20),
-              width: 250,
-              child: TextField(
-                controller: _emcontroller,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      gapPadding: 4.0,
-                      borderRadius: BorderRadius.circular(150),
-                    ),
-                    labelText: 'Email'),
-              )),
-          Container(
-              margin: const EdgeInsets.only(top: 20),
-              width: 250,
-              child: TextField(
-                controller: _pwdcontroller,
-                obscureText: true,
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      gapPadding: 4.0,
-                      borderRadius: BorderRadius.circular(150),
-                    ),
-                    labelText: 'Password'),
-              )),
-          GestureDetector(
-              // hotel login button
-              onTap: () => login(context),
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 20),
-                  width: 250,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(150),
-                    color: Colors.red,
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        'Login',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 16),
+    return WillPopScope(
+        onWillPop: () async {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) => AlertDialog(
+                    title: const Text("Warning"),
+                    content:
+                        const Text("Are you sure you want to close the app?"),
+                    actions: <Widget>[
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("Cancel"),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          SystemNavigator.pop(animated: true);
+                        },
+                        child: const Text("Ok"),
                       )
                     ],
-                  ),
-                ),
-              ))
-        ],
-      )),
-      if (_is_loading)
-        const Opacity(
-          opacity: 0.8,
-          child: ModalBarrier(dismissible: false, color: Colors.black),
-        ),
-      if (_is_loading)
-        const Center(
-          child: CircularProgressIndicator(),
-        ),
-    ]);
+                  ));
+          return false;
+        },
+        child: Stack(children: [
+          Scaffold(
+              body: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                // logo
+                "assets/Redana_logo.jpeg",
+                width: 200,
+                height: 200,
+              ),
+              const SizedBox(height: 40),
+              const Text(
+                "Hotel Login",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  width: 250,
+                  child: TextField(
+                    controller: _emcontroller,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          gapPadding: 4.0,
+                          borderRadius: BorderRadius.circular(150),
+                        ),
+                        labelText: 'Email'),
+                  )),
+              Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  width: 250,
+                  child: TextField(
+                    controller: _pwdcontroller,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          gapPadding: 4.0,
+                          borderRadius: BorderRadius.circular(150),
+                        ),
+                        labelText: 'Password'),
+                  )),
+              GestureDetector(
+                  // hotel login button
+                  onTap: () => login(context),
+                  child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 20),
+                      width: 250,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        border: Border.all(),
+                        borderRadius: BorderRadius.circular(150),
+                        color: Colors.red,
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            'Login',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 16),
+                          )
+                        ],
+                      ),
+                    ),
+                  ))
+            ],
+          )),
+          if (_is_loading)
+            const Opacity(
+              opacity: 0.8,
+              child: ModalBarrier(dismissible: false, color: Colors.black),
+            ),
+          if (_is_loading)
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+        ]));
   }
 }

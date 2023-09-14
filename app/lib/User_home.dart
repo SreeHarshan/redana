@@ -92,7 +92,30 @@ class _userhome extends State<UserHome> {
     return WillPopScope(
         onWillPop: () async {
           if (!scaffoldKey.currentState!.isDrawerOpen) {
-            SystemNavigator.pop(animated: true);
+            showDialog(
+                context: context,
+                builder: (BuildContext context) => AlertDialog(
+                      title: const Text("Warning"),
+                      content:
+                          const Text("Are you sure you want to close the app?"),
+                      actions: <Widget>[
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            SystemNavigator.pop(animated: true);
+                          },
+                          child: const Text("Ok"),
+                        )
+                      ],
+                    ));
           }
           // If drawer is open then close it
           scaffoldKey.currentState!.closeDrawer();
@@ -184,5 +207,26 @@ class _userhome extends State<UserHome> {
             ),
           ),
         ));
+  }
+}
+
+// ignore: camel_case_types
+class User_orders extends StatefulWidget {
+  const User_orders({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _user_orders createState() => _user_orders();
+}
+
+// ignore: camel_case_types
+class _user_orders extends State<User_orders> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Your Orders"),
+      ),
+    );
   }
 }

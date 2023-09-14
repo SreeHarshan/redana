@@ -20,6 +20,9 @@ class Cart extends StatefulWidget {
 
 // ignore: camel_case_types
 class _cart extends State<Cart> {
+  // For order loading
+  bool _is_loading = false;
+
   List<int> q = [];
 
   @override
@@ -53,26 +56,76 @@ class _cart extends State<Cart> {
   }
 
   Future<void> order(context) async {
+    setState(() {
+      _is_loading = true;
+    });
     String api = "/order";
     try {
       var url = Uri.parse(server_address + api);
+      var items = {};
+      for (var it in widget.cart_items) {
+        items[it.name] = q[widget.cart_items.indexOf(it)];
+      }
       var body = {
         "user_name": widget.user_name,
         "user_email": widget.user_email,
         "hotel_name": widget.hotel_name,
-        "order_items": [],
+        "order_items": convert.jsonEncode(items),
       };
-      var response = HTTP
-          .post(url,
-              headers: <String, String>{
-                'Content-Type': 'application/json; charset=UTF-8',
-              },
-              body: convert.jsonEncode(body))
-          .whenComplete(() => () {});
+      var response = await HTTP.post(url,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: convert.jsonEncode(body));
       //TODO complete this,ie, get the response
+      var jsonResponse =
+          convert.jsonDecode(response.body) as Map<String, dynamic>;
+      if (!jsonResponse["Success"]) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Center(
+              child: Text(
+            'There was an issue in placing the order',
+            style: TextStyle(color: Colors.red),
+          )),
+          duration: const Duration(milliseconds: 1500),
+          width: 280.0,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8.0,
+            vertical: 5.0,
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Center(
+              child: Text(
+            'Successfully placed order ',
+            style: TextStyle(color: Colors.green),
+          )),
+          duration: const Duration(milliseconds: 1500),
+          width: 280.0,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8.0,
+            vertical: 5.0,
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ));
+
+        Navigator.pop(context);
+        Navigator.pop(context);
+      }
     } catch (error) {
       print(error);
     }
+    setState(() {
+      _is_loading = false;
+    });
   }
 
   //TODO remove this function and add widget directly
@@ -82,7 +135,7 @@ class _cart extends State<Cart> {
     if (q.isNotEmpty) {
       return FloatingActionButton.extended(
           // TODO implement this
-          onPressed: () => {},
+          onPressed: () => order(context),
           label: Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: const Text(
@@ -98,146 +151,159 @@ class _cart extends State<Cart> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.red,
-        title: const Text(
-          "Cart",
-          style: TextStyle(color: Colors.white),
+    return Stack(children: <Widget>[
+      Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.red,
+          title: const Text(
+            "Cart",
+            style: TextStyle(color: Colors.white),
+          ),
+          leading: IconButton(
+            // Back to Hotel screen button
+            onPressed: () => {Navigator.pop(context)},
+            icon: const Icon(Icons.arrow_back), color: Colors.white,
+          ),
         ),
-        leading: IconButton(
-          // Back to Hotel screen button
-          onPressed: () => {Navigator.pop(context)},
-          icon: const Icon(Icons.arrow_back), color: Colors.white,
-        ),
-      ),
-      body:
-          // Check if cart is empty
-          q.isNotEmpty
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    SingleChildScrollView(
-                        child: Column(
-                      children: <Widget>[
-                        ListView.builder(
-                            itemCount: widget.cart_items.length,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return Card(
-                                elevation: 4,
-                                margin: const EdgeInsets.symmetric(
-                                    vertical: 15, horizontal: 10),
-                                child: Stack(
-                                  children: <Widget>[
-                                    // Tile containing name price color
-                                    ListTile(
-                                      leading: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.crop_square_sharp,
-                                            color:
-                                                // check vegan
-                                                widget.cart_items[index].vegan
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                            size: 32,
-                                          ),
-                                          Icon(Icons.circle,
+        body:
+            // Check if cart is empty
+            q.isNotEmpty
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      SingleChildScrollView(
+                          child: Column(
+                        children: <Widget>[
+                          ListView.builder(
+                              itemCount: widget.cart_items.length,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                return Card(
+                                  elevation: 4,
+                                  margin: const EdgeInsets.symmetric(
+                                      vertical: 15, horizontal: 10),
+                                  child: Stack(
+                                    children: <Widget>[
+                                      // Tile containing name price color
+                                      ListTile(
+                                        leading: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.crop_square_sharp,
                                               color:
                                                   // check vegan
                                                   widget.cart_items[index].vegan
                                                       ? Colors.green
                                                       : Colors.red,
-                                              size: 13),
-                                        ],
+                                              size: 32,
+                                            ),
+                                            Icon(Icons.circle,
+                                                color:
+                                                    // check vegan
+                                                    widget.cart_items[index]
+                                                            .vegan
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                size: 13),
+                                          ],
+                                        ),
+
+                                        // Name
+                                        title:
+                                            Text(widget.cart_items[index].name),
+
+                                        // Price
+                                        subtitle: Text(
+                                            "₹${widget.cart_items[index].price * q[index]}"),
                                       ),
 
-                                      // Name
-                                      title:
-                                          Text(widget.cart_items[index].name),
-
-                                      // Price
-                                      subtitle: Text(
-                                          "₹${widget.cart_items[index].price * q[index]}"),
-                                    ),
-
-                                    // Change quantity
-                                    Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: SizedBox(
-                                          width: 90,
-                                          height: 50,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: <Widget>[
-                                              GestureDetector(
+                                      // Change quantity
+                                      Align(
+                                          alignment: Alignment.bottomRight,
+                                          child: SizedBox(
+                                            width: 90,
+                                            height: 50,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: <Widget>[
+                                                GestureDetector(
+                                                    onTap: () =>
+                                                        _decrease_quantity(
+                                                            index),
+                                                    child: const Text(
+                                                      "-",
+                                                      style: TextStyle(
+                                                          fontSize: 15),
+                                                    )),
+                                                Text(
+                                                  "${q[index]}",
+                                                  style: const TextStyle(
+                                                      fontSize: 15),
+                                                ),
+                                                GestureDetector(
                                                   onTap: () =>
-                                                      _decrease_quantity(index),
+                                                      _increase_quantity(index),
                                                   child: const Text(
-                                                    "-",
+                                                    "+",
                                                     style:
                                                         TextStyle(fontSize: 15),
-                                                  )),
-                                              Text(
-                                                "${q[index]}",
-                                                style: const TextStyle(
-                                                    fontSize: 15),
-                                              ),
-                                              GestureDetector(
-                                                onTap: () =>
-                                                    _increase_quantity(index),
-                                                child: const Text(
-                                                  "+",
-                                                  style:
-                                                      TextStyle(fontSize: 15),
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        )),
-                                  ],
-                                ),
-                              );
-                            }),
-                      ],
-                    )),
+                                              ],
+                                            ),
+                                          )),
+                                    ],
+                                  ),
+                                );
+                              }),
+                        ],
+                      )),
 
-                    // Cart subtotal and reserve
-                    Container(
-                        width: double.infinity,
-                        height: 150,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 35, vertical: 20),
-                        color: Colors.red,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Cart Subtotal : ${_cart_total()}",
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20),
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            Center(child: _reserve_button(context)),
-                          ],
-                        )),
-                  ],
-                )
+                      // Cart subtotal and reserve
+                      Container(
+                          width: double.infinity,
+                          height: 150,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 35, vertical: 20),
+                          color: Colors.red,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Cart Subtotal : ${_cart_total()}",
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20),
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              Center(child: _reserve_button(context)),
+                            ],
+                          )),
+                    ],
+                  )
 
-              // Empty cart display
-              : const Center(
-                  child: Text("Oops, your cart is empty !"),
-                ),
-    );
+                // Empty cart display
+                : const Center(
+                    child: Text("Oops, your cart is empty !"),
+                  ),
+      ),
+      if (_is_loading)
+        const Opacity(
+          opacity: 0.8,
+          child: ModalBarrier(dismissible: false, color: Colors.black),
+        ),
+      if (_is_loading)
+        const Center(
+          child: CircularProgressIndicator(),
+        ),
+    ]);
   }
 }
