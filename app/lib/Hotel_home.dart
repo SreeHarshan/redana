@@ -39,7 +39,7 @@ class _hotel_home extends State<Hotel_home> {
   }
 
   Future<List<Hotel_order>> refresh_orders() async {
-    String api = "/hotelorders";
+    String api = "/hotelorders?hotel_name=${widget.hotel_name}";
     List<Hotel_order> tempList = [];
     try {
       var uri = Uri.parse(server_address + api);
@@ -104,7 +104,6 @@ class _hotel_home extends State<Hotel_home> {
     await FirebaseMessaging.instance.subscribeToTopic('order');
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      //TODO send notif
       if (message.data["hotel_name"] == widget.hotel_name) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -122,7 +121,6 @@ class _hotel_home extends State<Hotel_home> {
           ),
         );
 
-        // TODO
         // Refresh the orders list to display the new order
         setState(() {
           orders = refresh_orders();
@@ -146,7 +144,7 @@ class _hotel_home extends State<Hotel_home> {
           child: ListTile(
             title: Text(order.user_name),
             subtitle: Text(order.order_items.keys.join(" | ")),
-            leading: Icon(order.completed ? Icons.fork_right : Icons.fork_left),
+//            leading: Icon(order.completed ? Icons.fork_right : Icons.fork_left),
           )),
     );
   }
@@ -192,7 +190,7 @@ class _hotel_home extends State<Hotel_home> {
             padding: EdgeInsets.zero,
             children: <Widget>[
               UserAccountsDrawerHeader(
-                  accountName: Text(widget.hotel_name!),
+                  accountName: Text(widget.hotel_name),
                   accountEmail: Text(widget.hotel_email)),
               ListTile(
                 title: const Text("Settings"),
@@ -225,29 +223,40 @@ class _hotel_home extends State<Hotel_home> {
             ),
           ),
           body: Container(
-            padding:
-                const EdgeInsets.symmetric(vertical: 20.0, horizontal: 15.0),
-            child: FutureBuilder(
-              future: orders,
-              builder: ((BuildContext context,
-                  AsyncSnapshot<List<Hotel_order>> snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Something went wrong :('));
-                }
-                // If the data has arrived display it
-                return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: snapshot.data?.length,
-                    itemBuilder: (context, index) {
-                      return Order_tile(context, snapshot.data![index]);
+              padding:
+                  const EdgeInsets.symmetric(vertical: 20.0, horizontal: 15.0),
+              child: RefreshIndicator(
+                  onRefresh: () async {
+                    setState(() {
+                      orders = refresh_orders();
                     });
-              }),
-            ),
-          ),
+                  },
+                  child: FutureBuilder(
+                    future: orders,
+                    builder: ((BuildContext context,
+                        AsyncSnapshot<List<Hotel_order>> snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return const Center(
+                            child: Text('Something went wrong :/'));
+                      }
+                      if (snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text("You have no orders"),
+                        );
+                      }
+                      // If the data has arrived display it
+                      return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: snapshot.data?.length,
+                          itemBuilder: (context, index) {
+                            return Order_tile(context, snapshot.data![index]);
+                          });
+                    }),
+                  ))),
         ));
   }
 }

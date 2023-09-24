@@ -15,12 +15,41 @@ class Login extends StatelessWidget {
   Future<void> signin(context) async {
     GoogleSignInAccount? _useraccount;
 
-    //temp
-    //go_to_home(context, _useraccount);
     try {
-      await GoogleSignIn().signIn().then((userdata) {
+      await GoogleSignIn().signIn().then((userdata) async {
         _useraccount = userdata!;
-        go_to_home(context, _useraccount);
+
+        String api =
+            "/userlogin?name=${_useraccount?.displayName}&email=${_useraccount?.email}";
+
+        var url = Uri.parse(server_address + api);
+        var response = await HTTP.get(url).whenComplete(() => ());
+        if (response.statusCode == 200) {
+          var jsonResponse =
+              convert.jsonDecode(response.body) as Map<String, dynamic>;
+          print(jsonResponse);
+          if (jsonResponse["Success"]) {
+            go_to_home(context, _useraccount);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: const Center(
+                  child: Text(
+                'Unable to login ',
+                style: TextStyle(color: Colors.red),
+              )),
+              duration: const Duration(milliseconds: 1500),
+              width: 280.0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 5.0,
+              ),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ));
+          }
+        }
       });
     } catch (error) {
       print(error);
@@ -29,12 +58,12 @@ class Login extends StatelessWidget {
 
   // switches to the home page
   // ignore: non_constant_identifier_names
-  void go_to_home(context, _useraccount) {
+  void go_to_home(context, useraccount) {
     // Logged in snackbar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content:
-            Center(child: Text('Logged in as ' + _useraccount.displayName)),
+        // ignore: prefer_interpolation_to_compose_strings
+        content: Center(child: Text('Logged in as ' + useraccount.displayName)),
         duration: const Duration(milliseconds: 1500),
         width: 280.0,
         padding: const EdgeInsets.symmetric(
@@ -49,7 +78,7 @@ class Login extends StatelessWidget {
     );
     //switch to home page
     Navigator.push(context,
-        MaterialPageRoute(builder: (context) => UserHome(_useraccount)));
+        MaterialPageRoute(builder: (context) => UserHome(useraccount)));
   }
 
   @override

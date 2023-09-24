@@ -71,6 +71,7 @@ class _cart extends State<Cart> {
         "user_email": widget.user_email,
         "hotel_name": widget.hotel_name,
         "order_items": convert.jsonEncode(items),
+        "total": _cart_total(),
       };
       var response = await HTTP.post(url,
           headers: <String, String>{
@@ -134,7 +135,6 @@ class _cart extends State<Cart> {
     // Check if he cart is empty
     if (q.isNotEmpty) {
       return FloatingActionButton.extended(
-          // TODO implement this
           onPressed: () => order(context),
           label: Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
