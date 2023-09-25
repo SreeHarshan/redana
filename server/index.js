@@ -75,11 +75,8 @@ app.get("/dishes",async(req,res)=>{
     
     const client = new pg.Client(dbstring);
     await client.connect()
-    q = "select id from hotels where name = '"+name+"'";
-    hotel_id = await client.query(q);
-    hotel_id = hotel_id['rows'][0]['id'];
-    console.log(hotel_id);
-    out = await client.query("select * from dishes where hotel_id = "+hotel_id.toString());
+    q="select dishes.name,dishes.price,dishes.stock,dishes.vegan from dishes left join hotels on dishes.hotel_id = hotels.id where hotels.name ='"+name+"'";
+    out = await client.query(q);
     data = out['rows'];
     await client.end();
 
@@ -226,34 +223,19 @@ app.get("/hotelorders",async(req,res)=>{
 //    data["124"] = {"user_name":"Dinesh","order_items":{"Chicken Biriyani":4},"total":400,"completed":false}  
 
 
-    // TODO this
      const client = new pg.Client(dbstring);
     await client.connect()
-    q = "select id from hotels where name = '"+hotel_name+"'";
-    hotel_id = await client.query(q);
-    hotel_id = hotel_id['rows'][0]['id'];
-    out = await client.query("select * from orders where hotel_id = "+hotel_id.toString());
+    q = "select orders.id as order_id,users.name as user_name,payments.amount as total,payments.status as completed,dishes.name as dish_name,order_items.quantity from order_items left join orders on order_items.order_id = orders.id left join payments on orders.payment_id = payments.id left join dishes on order_items.dish_id = dishes.id left join users on orders.user_id = users.id left join hotels on orders.hotel_id = hotels.id where hotels.name = '"+hotel_name+"'";
+    var out = await client.query(q);
     var orders = out['rows'];
     for(var i=0;i<orders.length;i++){
-        
-        // get user_name
-        user_name = await client.query("select name from users where id = "+orders[i]['user_id']);
-        user_name = user_name['rows'][0]['name'];
-
-        // get order items,quantity
-        order_items = await client.query("select dish_id,quantity from order_items where order_id="+orders[i]['id']); 
-        out = order_items['rows']
-        order_items = {}
-        for(var j=0;j<out.length;j++){
-            var dish_name = await client.query("select name from dishes where id = "+out[j]['dish_id']);
-            dish_name = dish_name['rows'][0]['name'];
-            order_items[dish_name] = out[j]['quantity'];
+        var order_id = orders[i]["order_id"].toString();
+        if(!data.hasOwnProperty(order_id)){
+            data[order_id] = {"user_name":orders[i]["user_name"],"completed":orders[i]["completed"],"total":orders[i]["total"],"order_items":{}};
         }
-        var id = orders[i]['id']
-        out = await client.query("select status,amount from payments where id = "+orders[i]["payment_id"]);
-        out = out["rows"][0];
-        data[id.toString()] = {"user_name":user_name,"total":out["amount"],"completed":out["status"],"order_items":order_items};
-        console.log(out);
+        item = orders[i]["dish_name"];
+        data[order_id]["order_items"][item] = orders[i]["quantity"];
+
     }
     await client.end();
 
@@ -305,7 +287,7 @@ app.get('/', (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Server is running on port ${port}`)
 })
 
 app.on("listening",()=>{
