@@ -37,7 +37,8 @@ class _userhome extends State<UserHome> {
       if (response.statusCode == 200) {
         var jsonResponse = convert.jsonDecode(response.body) as List<dynamic>;
         for (var element in jsonResponse) {
-          _hotels.add(Hotel(element));
+          _hotels.add(
+              Hotel(element['name'], element['address'], element['ph_no']));
         }
       }
     } on Exception catch (e) {

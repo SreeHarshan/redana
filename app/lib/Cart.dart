@@ -78,7 +78,6 @@ class _cart extends State<Cart> {
             'Content-Type': 'application/json; charset=UTF-8',
           },
           body: convert.jsonEncode(body));
-      //TODO complete this,ie, get the response
       var jsonResponse =
           convert.jsonDecode(response.body) as Map<String, dynamic>;
       if (!jsonResponse["Success"]) {

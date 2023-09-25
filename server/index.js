@@ -45,11 +45,8 @@ app.get('/hotels',async(req,res) => {
 
     const client = new pg.Client(dbstring);
     await client.connect()
-    out = await client.query("select name from hotels");
-    for(let i=0;i< out['rows'].length;i++){
-        data.push(out['rows'][i]['name']);
-    }
-    console.log(out['rows']);
+    data = await client.query("select name,address,ph_no from hotels");
+    data = data['rows'];
     await client.end();
 
     res.send(data);
@@ -61,7 +58,6 @@ app.get("/dishes",async(req,res)=>{
     data = {}
 
     var name = req.query.name;
-    console.log(name);
     // temp create data
     /*
     name = req.query.name
@@ -126,6 +122,11 @@ app.get('/hotellogin', async(req, res) => {
     else{
         data['Success'] = false;
     }
+
+    //temp 
+    data['name'] = 'Hotel A';
+    data['email'] = 'hotela@gmail.com';
+    data['Success'] = true;
     
     res.send(data);
 })
@@ -190,13 +191,11 @@ app.post("/order",async(req,res)=>{
   },
   topic: 'order'
 };
-console.log(message);
 
 // Send a message to devices subscribed to the provided topic.
     firebase.messaging().send(message)
     .then((response) => {
     // Response is a message ID string.
-    console.log('Successfully sent message:', response);
         data["Success"] = true;
         res.writeHead(200, { 'Content-Type': 'application/json' });
     res.write(JSON.stringify(data));
@@ -253,7 +252,6 @@ app.get("/notif",async(req,res)=>{
     await client.connect()
     payment_id = await client.query("insert into payments(status,amount) values(false,"+total+") returning id;");
     payment_id = payment_id['rows'][0]['id']; 
-    console.log(out);
     await client.end();
 
 

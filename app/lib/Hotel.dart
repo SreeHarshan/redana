@@ -47,11 +47,37 @@ class _hotelcard extends State<HotelCard> {
               const SizedBox(
                 width: 15,
               ),
-              Text(
-                hotel.name,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-              )
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      hotel.name,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: <Widget>[
+                        const Icon(Icons.location_pin),
+                        Expanded(
+                          child: Text(
+                            hotel.addr,
+                            softWrap: false,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: <Widget>[
+                        const Icon(Icons.phone),
+                        Text(hotel.ph_no),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ));

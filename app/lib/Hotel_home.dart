@@ -137,7 +137,10 @@ class _hotel_home extends State<Hotel_home> {
   // ignore: non_constant_identifier_names
   Widget Order_tile(BuildContext context, Hotel_order order) {
     return GestureDetector(
-      onTap: () => {},
+      onTap: () => {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => Hotel_order_page(order)))
+      },
       child: Card(
           elevation: 4,
           margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
@@ -261,8 +264,80 @@ class _hotel_home extends State<Hotel_home> {
   }
 }
 
+class Hotel_order_page extends StatefulWidget {
+  Hotel_order hotel_order;
+  Hotel_order_page(this.hotel_order, {super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _hotel_order_page createState() => _hotel_order_page();
+}
+
+// ignore: camel_case_types
+class _hotel_order_page extends State<Hotel_order_page> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.red,
+        title: Text(
+          widget.hotel_order.user_name,
+          style: const TextStyle(color: Colors.white),
+        ),
+        leading: IconButton(
+          // Back to home screen button
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back), color: Colors.white,
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                "Customer Name:",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
+              ),
+              Text(
+                " " * 10 + widget.hotel_order.user_name,
+                style: const TextStyle(fontSize: 15.0),
+              ),
+              const SizedBox(height: 10),
+              Text("Total: ${widget.hotel_order.total}",
+                  style: const TextStyle(fontSize: 22.0)),
+              const SizedBox(height: 10.0),
+              const Text(
+                "Order Items",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+              ),
+              const SizedBox(height: 5),
+              //      SingleChildScrollView(          child:
+              ListView.builder(
+                  shrinkWrap: true,
+//              physics: const NeverScrollableScrollPhysics(),
+                  itemCount: widget.hotel_order.order_items.length,
+                  itemBuilder: (context, index) {
+                    String key =
+                        widget.hotel_order.order_items.keys.elementAt(index);
+                    return ListTile(
+                      title: Text(key),
+                      subtitle:
+                          Text(widget.hotel_order.order_items[key].toString()),
+                    );
+                  }),
+              //       )
+            ]),
+      ),
+    );
+  }
+}
+
+// ignore: camel_case_types
 class Hotel_order {
+  // ignore: non_constant_identifier_names
   String user_name;
+  // ignore: non_constant_identifier_names
   Map<String, dynamic> order_items;
   int total;
   bool completed;
@@ -270,7 +345,10 @@ class Hotel_order {
   Hotel_order(this.user_name, this.order_items, this.total, this.completed);
 
   factory Hotel_order.fromJson(Map<String, dynamic> json) {
-    return Hotel_order(json["user_name"], json["order_items"], json["total"],
+    return Hotel_order(
+        json["user_name"],
+        json["order_items"] as Map<String, dynamic>,
+        json["total"],
         json["completed"]);
   }
 }

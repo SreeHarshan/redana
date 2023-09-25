@@ -17,12 +17,10 @@ class Dish {
 
 // Hotel class
 class Hotel {
-  String name;
+  String name, addr, ph_no;
   late Future<List<Dish>> dishes;
 
-  Hotel(
-    this.name,
-  );
+  Hotel(this.name, this.addr, this.ph_no);
 
   Future<List<Dish>> get_dishes() async {
     String api = '/dishes?name=$name';
