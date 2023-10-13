@@ -44,3 +44,25 @@ class Hotel {
     return _dishes;
   }
 }
+
+class Hotel_order {
+  // ignore: non_constant_identifier_names
+  String user_name;
+  // ignore: non_constant_identifier_names
+  Map<String, dynamic> order_items;
+  int total;
+  String order_id;
+  bool completed;
+
+  Hotel_order(this.user_name, this.order_items, this.total, this.completed,
+      this.order_id);
+
+  factory Hotel_order.fromJson(Map<String, dynamic> json) {
+    return Hotel_order(
+        json["user_name"],
+        json["order_items"] as Map<String, dynamic>,
+        json["total"],
+        json["completed"],
+        json["order_id"]);
+  }
+}

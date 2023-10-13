@@ -21,6 +21,7 @@ class Cart extends StatefulWidget {
 // ignore: camel_case_types
 class _cart extends State<Cart> {
   // For order loading
+  // ignore: non_constant_identifier_names
   bool _is_loading = false;
 
   List<int> q = [];

@@ -2,7 +2,6 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 
-
 var pg  = require('pg');
 var dbstring = "postgres://qzayearu:19jsuZTTkdZFFDMxksfH2svOspa-dyW9@rain.db.elephantsql.com/qzayearu";
 
@@ -224,13 +223,13 @@ app.get("/hotelorders",async(req,res)=>{
 
      const client = new pg.Client(dbstring);
     await client.connect()
-    q = "select orders.id as order_id,users.name as user_name,payments.amount as total,payments.status as completed,dishes.name as dish_name,order_items.quantity from order_items left join orders on order_items.order_id = orders.id left join payments on orders.payment_id = payments.id left join dishes on order_items.dish_id = dishes.id left join users on orders.user_id = users.id left join hotels on orders.hotel_id = hotels.id where hotels.name = '"+hotel_name+"'";
+    q = "select orders.id as order_id,users.name as user_name,payments.amount as total,orders.status as completed,dishes.name as dish_name,order_items.quantity from order_items left join orders on order_items.order_id = orders.id left join payments on orders.payment_id = payments.id left join dishes on order_items.dish_id = dishes.id left join users on orders.user_id = users.id left join hotels on orders.hotel_id = hotels.id where hotels.name = '"+hotel_name+"'";
     var out = await client.query(q);
     var orders = out['rows'];
     for(var i=0;i<orders.length;i++){
         var order_id = orders[i]["order_id"].toString();
         if(!data.hasOwnProperty(order_id)){
-            data[order_id] = {"user_name":orders[i]["user_name"],"completed":orders[i]["completed"],"total":orders[i]["total"],"order_items":{}};
+            data[order_id] = {"user_name":orders[i]["user_name"],"completed":orders[i]["completed"],"total":orders[i]["total"],"order_items":{},"order_id":order_id};
         }
         item = orders[i]["dish_name"];
         data[order_id]["order_items"][item] = orders[i]["quantity"];
@@ -242,6 +241,35 @@ app.get("/hotelorders",async(req,res)=>{
 });
 
 
+// Set order as complete 
+app.get("/completeorder",async(req,res)=>{
+    const order_id = req.query.order_id;
+
+    const client = new pg.Client(dbstring);
+    await client.connect()
+    await client.query("update orders set status = not status where id = "+order_id);
+
+    data = {}
+    data["Success"] = true;
+
+    res.send(data);
+});
+
+// Set stock for items
+app.get("/setstock",async(req,res)=>{
+    const dish_name = req.query.dish_name;
+    const hotel_name = req.query.hotel_name;
+
+    const client = new pg.Client(dbstring);
+    await client.connect();
+    q = "update dishes set stock = not stock from hotels where dishes.hotel_id = hotels.id and hotels.name='"+hotel_name+"' and dishes.name='"+dish_name+"'";
+    await client.query(q);
+
+    data = {}
+    data["Success"] = true;
+
+    res.send(data);
+});
 
 // temp send firebase notif
 app.get("/notif",async(req,res)=>{

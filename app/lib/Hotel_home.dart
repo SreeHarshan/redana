@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as HTTP;
+import 'Schema.dart';
 
 // ignore: camel_case_types
 class Hotel_home extends StatefulWidget {
@@ -147,7 +148,7 @@ class _hotel_home extends State<Hotel_home> {
           child: ListTile(
             title: Text(order.user_name),
             subtitle: Text(order.order_items.keys.join(" | ")),
-//            leading: Icon(order.completed ? Icons.fork_right : Icons.fork_left),
+            leading: Icon(order.completed ? Icons.check : Icons.close),
           )),
     );
   }
@@ -275,6 +276,40 @@ class Hotel_order_page extends StatefulWidget {
 
 // ignore: camel_case_types
 class _hotel_order_page extends State<Hotel_order_page> {
+  Future<void> _completeorder(BuildContext context) async {
+    String api = "/completeorder?order_id=${widget.hotel_order.order_id}";
+    try {
+      var uri = Uri.parse(server_address + api);
+      var response = await HTTP.get(uri);
+      if (response.statusCode == 200) {
+        var jsonReponse =
+            convert.jsonDecode(response.body) as Map<String, dynamic>;
+        if (jsonReponse["Success"]) {
+          // ignore: use_build_context_synchronously
+          Navigator.pop(context);
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Center(child: Text('Updated the order')),
+              duration: const Duration(milliseconds: 1500),
+              width: 180.0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 5.0,
+              ),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (err) {
+      print(err);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -307,6 +342,20 @@ class _hotel_order_page extends State<Hotel_order_page> {
               Text("Total: ${widget.hotel_order.total}",
                   style: const TextStyle(fontSize: 22.0)),
               const SizedBox(height: 10.0),
+              GestureDetector(
+                onTap: () => _completeorder(context),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  color: Colors.red,
+                  width: 100,
+                  height: 50,
+                  child: Center(
+                      child: Text(widget.hotel_order.completed
+                          ? "Set not completed"
+                          : "Set completed")),
+                ),
+              ),
               const Text(
                 "Order Items",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
@@ -334,21 +383,36 @@ class _hotel_order_page extends State<Hotel_order_page> {
 }
 
 // ignore: camel_case_types
-class Hotel_order {
-  // ignore: non_constant_identifier_names
-  String user_name;
-  // ignore: non_constant_identifier_names
-  Map<String, dynamic> order_items;
-  int total;
-  bool completed;
+class Hotel_dish_page extends StatefulWidget {
+  const Hotel_dish_page({super.key});
 
-  Hotel_order(this.user_name, this.order_items, this.total, this.completed);
+  @override
+  // ignore: library_private_types_in_public_api
+  _hotel_dish_page createState() => _hotel_dish_page();
+}
 
-  factory Hotel_order.fromJson(Map<String, dynamic> json) {
-    return Hotel_order(
-        json["user_name"],
-        json["order_items"] as Map<String, dynamic>,
-        json["total"],
-        json["completed"]);
+// ignore: camel_case_types
+class _hotel_dish_page extends State<Hotel_dish_page> {
+
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.red,
+          title: const Text(
+            "Set Dish Stock",
+            style: TextStyle(color: Colors.white),
+          ),
+          leading: IconButton(
+            // Back to home screen button
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back), color: Colors.white,
+          ),
+        ),
+        body: ListView.builder(itemBuilder: ((context, index) {
+          return ListTile();
+        })));
   }
 }
