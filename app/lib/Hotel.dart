@@ -1,4 +1,5 @@
 // ignore: file_names
+import 'package:Redana/global.dart';
 import 'package:flutter/material.dart';
 
 import "Schema.dart";
@@ -30,54 +31,23 @@ class _hotelcard extends State<HotelCard> {
                   builder: (context) =>
                       HotelPage(widget.user_email, widget.user_name, hotel)));
         },
-        child: Card(
-          elevation: 4,
+        child: Container(
           margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-          child: Row(
+          child: Column(
             children: <Widget>[
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 10),
-                height: 100,
-                child: Image.asset(
-                  "assets/hotel_icon.jpg",
-                  width: 80,
-                  height: 80,
-                ),
-              ),
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  height: 100,
+                  child: Image.network(
+                      "$server_address/hotelimg?hotel_name=${widget.hotel.name}")),
               const SizedBox(
-                width: 15,
+                height: 2,
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      hotel.name,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 20),
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: <Widget>[
-                        const Icon(Icons.location_pin),
-                        Expanded(
-                          child: Text(
-                            hotel.addr,
-                            softWrap: false,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        const Icon(Icons.phone),
-                        Text(hotel.ph_no),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              Text(
+                widget.hotel.name,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              )
             ],
           ),
         ));
@@ -100,6 +70,7 @@ class HotelPage extends StatefulWidget {
 class _hotelpage extends State<HotelPage> {
   // Contains all the items in cart
   List<Dish> cart = [];
+  late Cart_obj cart_obj;
 
   @override
   void initState() {
@@ -164,8 +135,11 @@ class _hotelpage extends State<HotelPage> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => Cart(widget.user_email,
-                                widget.user_name, widget.hotel.name, cart)))
+                            builder: (context) => Cart(Cart_obj(
+                                widget.user_email,
+                                widget.user_name,
+                                widget.hotel.name,
+                                cart))))
                   },
               icon: const Icon(Icons.trolley),
               color: Colors.white),

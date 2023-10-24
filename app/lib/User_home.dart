@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as HTTP;
 import 'dart:convert' as convert;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 import 'Hotel.dart';
 import 'Schema.dart';
@@ -21,40 +22,73 @@ class UserHome extends StatefulWidget {
 
 // ignore: camel_case_types
 class _userhome extends State<UserHome> {
-  late Future<List<Hotel>> hotels;
-  List<HotelCard> hotels_card = [];
+  Future<List<Hotel>>? hotels;
 
   //For scaffold drawer check
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Bottom nav
+  int _navindex = 0;
+
+  // Cart
+  late Cart_obj cart;
+
+  // carousal
+  int _current = 0;
+  final CarouselController _controller = CarouselController();
+  // ignore: non_constant_identifier_names
+  late Future<List<String>> carousal_items;
+
+  // ignore: non_constant_identifier_names
   Future<List<Hotel>> get_hotels() async {
     //get hotels from server
-    String api = '/hotels';
-    var url = Uri.parse(server_address + api);
+    String api2 = '/hotels';
+    var url2 = Uri.parse(server_address + api2);
+    print("getting hotels");
+    print(server_address + api2);
     List<Hotel> _hotels = [];
     try {
-      var response = await HTTP.get(url).whenComplete(() {});
-      if (response.statusCode == 200) {
-        var jsonResponse = convert.jsonDecode(response.body) as List<dynamic>;
-        for (var element in jsonResponse) {
+      var response2 = await HTTP.get(url2);
+      if (response2.statusCode == 200) {
+        var jsonResponse2 = convert.jsonDecode(response2.body) as List<dynamic>;
+        for (var element in jsonResponse2) {
           _hotels.add(
               Hotel(element['name'], element['address'], element['ph_no']));
         }
+      } else {
+        print(response2.statusCode);
       }
     } on Exception catch (e) {
       print(e);
       throw Exception(e);
     }
 
-    //Convert hotels to cards
-    for (var hotel in _hotels) {
-      hotels_card.add(HotelCard(
-          widget.useraccount.email, widget.useraccount.displayName, hotel));
-    }
-
-    print("completed fetching hotels");
+    setState(() {});
 
     return _hotels;
+  }
+
+  // ignore: non_constant_identifier_names
+  Future<List<String>> _get_carousal_items() async {
+    String api = "/offers";
+    var url = Uri.parse(server_address + api);
+    List<String> _items = [];
+    try {
+      var response = await HTTP.get(url);
+      if (response.statusCode == 200) {
+        var jsonResponse = convert.jsonDecode(response.body);
+
+        for (var el in jsonResponse) {
+          _items.add(el);
+        }
+      } else {
+        print(response.statusCode);
+      }
+    } on Exception catch (e) {
+      print(e);
+      throw Exception(e);
+    }
+    return _items;
   }
 
   @override
@@ -62,6 +96,9 @@ class _userhome extends State<UserHome> {
     super.initState();
 
     hotels = get_hotels();
+    carousal_items = _get_carousal_items();
+
+    cart = Cart_obj(widget.useraccount.displayName, widget.useraccount.email);
   }
 
   Future<void> logout(context) async {
@@ -86,6 +123,12 @@ class _userhome extends State<UserHome> {
 
     Navigator.pop(context);
     Navigator.pop(context);
+  }
+
+  void _onNavItemTap(int index) {
+    setState(() {
+      _navindex = index;
+    });
   }
 
   @override
@@ -156,57 +199,163 @@ class _userhome extends State<UserHome> {
 
           appBar: AppBar(
             title: const Text(
-              "Redana",
+              "WELCOME",
               style: TextStyle(color: Colors.white),
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Color.fromARGB(255, 255, 0, 0),
             leading: Builder(
               builder: (context) {
                 return IconButton(
-                    onPressed: () => {Scaffold.of(context).openDrawer()},
-                    icon: const Icon(
-                      Icons.menu,
-                      color: Colors.white,
-                    ));
+                  onPressed: () => {Scaffold.of(context).openDrawer()},
+                  icon: Image.asset("assets/Redana_logo.jpeg"),
+                );
               },
             ),
           ),
-          body: SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(vertical: 20.0, horizontal: 15.0),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  margin: const EdgeInsets.only(left: 15),
-                  child: const Text(
-                    "Hotels nearby",
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                  ),
-                ),
-
-                // FutureBuilder to load the hotel details
-                FutureBuilder(
-                    future: hotels,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return const Center(
-                            child: Text('Something went wrong :('));
-                      }
-                      // If the data has arrived display it
-                      return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: hotels_card.length,
-                          itemBuilder: (context, index) {
-                            return hotels_card[index];
-                          });
-                    }),
-              ],
+          body: Column(children: [
+            // Carousal
+            FutureBuilder(
+                future: carousal_items,
+                builder: (context, AsyncSnapshot<List<String>> snapshot) {
+                  print(snapshot.data);
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
+                    return Column(children: <Widget>[
+                      // Actual Slider
+                      CarouselSlider(
+                        options: CarouselOptions(
+                            autoPlay: true,
+                            enlargeCenterPage: true,
+                            aspectRatio: 2.0,
+                            onPageChanged: (index, reason) {
+                              setState(() {
+                                _current = index;
+                              });
+                            }),
+                        items: snapshot.data!.asMap().entries.map((i) {
+                          return Builder(
+                            builder: (BuildContext context) {
+                              return GestureDetector(
+                                  onTap: () {
+                                    /*
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(//TODO add two future and get hotel from there
+                                            builder: (context) => HotelPage(
+                                                widget.useraccount.email,
+                                                widget.useraccount.displayName,
+                                                )));*/
+                                  },
+                                  child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 5.0, vertical: 10.0),
+                                      child: Image.network(
+                                          "$server_address/offerimg?offer=${i.key + 1}")));
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      // Dots to indicate and navigate
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: snapshot.data!.asMap().entries.map((entry) {
+                          return GestureDetector(
+                            onTap: () => _controller.animateToPage(entry.key),
+                            child: Container(
+                              width: 12.0,
+                              height: 12.0,
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 4.0),
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black)
+                                      .withOpacity(
+                                          _current == entry.key ? 0.9 : 0.4)),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ]);
+                  }
+                  return const Text("Loading");
+                }),
+            const Row(children: <Widget>[
+              Expanded(
+                  child: Divider(
+                color: Colors.red,
+                height: 5,
+                thickness: 3.0,
+              )),
+              SizedBox(width: 2),
+              Text(
+                "Select your Hotel",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.0),
+              ),
+              SizedBox(width: 2),
+              Expanded(
+                  child: Divider(
+                color: Colors.red,
+                height: 5,
+                thickness: 3.0,
+              )),
+            ]),
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 20.0, left: 5.0, right: 5.0),
+              child: Column(
+                children: <Widget>[
+                  // FutureBuilder to load the hotel details
+                  FutureBuilder(
+                      future: hotels,
+                      builder: (context, AsyncSnapshot<List<Hotel>> snapshot) {
+                        if (snapshot.connectionState != ConnectionState.done ||
+                            !snapshot.hasData) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return const Center(
+                              child: Text('Something went wrong :('));
+                        }
+                        // If the data has arrived display it
+                        return GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2, // number of items in each row
+                              mainAxisSpacing: 10.0, // spacing between rows
+                              crossAxisSpacing: 10.0, // spacing between columns
+                            ),
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: snapshot.data?.length,
+                            itemBuilder: (context, index) {
+                              return HotelCard(
+                                  widget.useraccount.email,
+                                  widget.useraccount.displayName,
+                                  snapshot.data![index]);
+                            });
+                      }),
+                ],
+              ),
             ),
-          ),
+          ]),
+          /*
+          bottomNavigationBar: BottomNavigationBar(
+              currentIndex: _navindex,
+              onTap: _onNavItemTap,
+              unselectedItemColor: Colors.grey,
+              selectedItemColor: Colors.black,
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.account_circle), label: "Account"),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.trolley), label: "Cart"),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.settings), label: "Settings"),
+              ]),*/
         ));
   }
 }

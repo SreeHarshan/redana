@@ -66,3 +66,10 @@ class Hotel_order {
         json["order_id"]);
   }
 }
+
+class Cart_obj {
+  late String? user_name, user_email, hotel_name;
+  late List<Dish>? cart_items;
+
+  Cart_obj(this.user_name, this.user_email, [this.hotel_name, this.cart_items]);
+}

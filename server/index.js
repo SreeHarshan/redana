@@ -2,9 +2,18 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 
+// Postgress db
 var pg  = require('pg');
-var dbstring = "postgres://qzayearu:19jsuZTTkdZFFDMxksfH2svOspa-dyW9@rain.db.elephantsql.com/qzayearu";
+const { Pool } = require("pg");
+var dbconfig = {
+    user:"qzayearu",
+    database:"qzayearu",
+    password:"19jsuZTTkdZFFDMxksfH2svOspa-dyW9",
+    host:"rain.db.elephantsql.com",
+};
+const pool = new Pool(dbconfig);
 
+// Cors
 app.use(cors())
 
 const bodyParser = require('body-parser')
@@ -14,6 +23,10 @@ app.use(
     extended: true,
   })
 )
+
+// Dir
+const path = require("path");
+app.use(express.static('public'));
 
 // Port number
 const port = 3000
@@ -42,11 +55,11 @@ app.get('/hotels',async(req,res) => {
    
     data = [];
 
-    const client = new pg.Client(dbstring);
-    await client.connect()
+    const client = await pool.connect();
     data = await client.query("select name,address,ph_no from hotels");
     data = data['rows'];
-    await client.end();
+
+    client.release();
 
     res.send(data);
 })
@@ -68,13 +81,13 @@ app.get("/dishes",async(req,res)=>{
 
     }*/
     
-    const client = new pg.Client(dbstring);
-    await client.connect()
+    const client = await pool.connect();
     q="select dishes.name,dishes.price,dishes.stock,dishes.vegan from dishes left join hotels on dishes.hotel_id = hotels.id where hotels.name ='"+name+"'";
     out = await client.query(q);
     data = out['rows'];
-    await client.end();
-
+    
+    client.release();
+    
     res.send(data);
 })
 
@@ -85,16 +98,16 @@ app.get('/userlogin',async(req,res)=>{
 
     data = {}
 
-    //TODO check if user is not in db then add them
-     
-    const client = new pg.Client(dbstring);
-    await client.connect()
+    //check if user is not in db then add them
+    const client = await pool.connect();
     var out = await client.query("select * from users where name='"+name+"' and email='"+email+"'");
     if(out.rowCount == 0){
         await client.query("insert into users(name,email,ph_no) values('"+name+"','"+email+"',123467890)");
     }
 
     data["Success"] = true;
+
+    client.release();
 
     res.send(data);
 
@@ -108,11 +121,9 @@ app.get('/hotellogin', async(req, res) => {
     console.log("Hotel login");
 
 
-    const client = new pg.Client(dbstring);
-    await client.connect()
+    const client = await pool.connect();
     out = await client.query("select * from hotels where email='"+email+"' and pass='"+pass+"'");
-    await client.end();
-
+    client.release();
     if(out['rowCount']==1){
         data['Success'] = true;
         data['name'] = out['rows'][0]['name'];
@@ -141,8 +152,7 @@ app.post("/order",async(req,res)=>{
 
     data = {}
 
-    const client = new pg.Client(dbstring);
-    await client.connect()
+    const client = pool.connect();
 
 
     //get hotel_id
@@ -168,19 +178,13 @@ app.post("/order",async(req,res)=>{
     // insert into order_items table
     
     // Iterate individual order_item and add to table
-    console.log(order_items);
     for(var item in order_items){
         dish_id = await client.query("select id from dishes where name = '"+item+"' and hotel_id = "+hotel_id);
         dish_id = dish_id['rows'][0]['id'];
-        console.log(order_id,dish_id,order_items[item]);
         out = await client.query("insert into order_items(order_id,dish_id,quantity) values("+order_id+","+dish_id+","+order_items[item]+");"); 
     }
 
-    await client.end();
-
-
-
-
+    client.release();
 
     //send firebase notification
     const message = {
@@ -221,8 +225,7 @@ app.get("/hotelorders",async(req,res)=>{
 //    data["124"] = {"user_name":"Dinesh","order_items":{"Chicken Biriyani":4},"total":400,"completed":false}  
 
 
-     const client = new pg.Client(dbstring);
-    await client.connect()
+     const client = await pool.connect();
     q = "select orders.id as order_id,users.name as user_name,payments.amount as total,orders.status as completed,dishes.name as dish_name,order_items.quantity from order_items left join orders on order_items.order_id = orders.id left join payments on orders.payment_id = payments.id left join dishes on order_items.dish_id = dishes.id left join users on orders.user_id = users.id left join hotels on orders.hotel_id = hotels.id where hotels.name = '"+hotel_name+"'";
     var out = await client.query(q);
     var orders = out['rows'];
@@ -235,7 +238,7 @@ app.get("/hotelorders",async(req,res)=>{
         data[order_id]["order_items"][item] = orders[i]["quantity"];
 
     }
-    await client.end();
+    client.release();
 
     res.send(data);
 });
@@ -245,9 +248,9 @@ app.get("/hotelorders",async(req,res)=>{
 app.get("/completeorder",async(req,res)=>{
     const order_id = req.query.order_id;
 
-    const client = new pg.Client(dbstring);
-    await client.connect()
+    const client = await pool.connect();
     await client.query("update orders set status = not status where id = "+order_id);
+    client.release();
 
     data = {}
     data["Success"] = true;
@@ -260,10 +263,10 @@ app.get("/setstock",async(req,res)=>{
     const dish_name = req.query.dish_name;
     const hotel_name = req.query.hotel_name;
 
-    const client = new pg.Client(dbstring);
-    await client.connect();
+    const client = await pool.connect();
     q = "update dishes set stock = not stock from hotels where dishes.hotel_id = hotels.id and hotels.name='"+hotel_name+"' and dishes.name='"+dish_name+"'";
     await client.query(q);
+    client.release();
 
     data = {}
     data["Success"] = true;
@@ -271,18 +274,69 @@ app.get("/setstock",async(req,res)=>{
     res.send(data);
 });
 
+
+// Get hotel image 
+app.get("/hotelimg",async(req,res)=>{
+    const fileName = req.query.hotel_name;
+    const options = {
+        root: path.join(__dirname)
+    };
+
+
+    res.sendFile("./hotelimg/"+fileName+".png",options,function(err){
+        if (err) {
+            console.log(err);
+            res.end();
+        }
+    });
+});
+
+// Get all offers
+app.get("/offers",async(req,res)=>{
+    
+    
+    const client = await pool.connect();
+    q = "select offers.id,hotels.name from offers left join hotels on offers.hotel_id = hotels.id";
+    data = await client.query(q);
+    data = data['rows'];
+    
+    client.release();
+    
+    
+    for(var i=0;i<data.length;i++){
+        data[i] = data[i]["name"];
+    }
+
+    res.send(data); 
+});
+
+// Offer image
+app.get("/offerimg",async(req,res)=>{
+    const fileName = req.query.offer;
+    const options = {
+        root: path.join(__dirname)
+    };
+
+
+    res.sendFile("./hotelimg/offer "+fileName+".png",options,function(err){
+        if (err) {
+            console.log(err);
+            res.end();
+        }
+    });
+});
+
+    
 // temp send firebase notif
 app.get("/notif",async(req,res)=>{
 
     const total=req.query.total;
 
-    const client = new pg.Client(dbstring);
-    await client.connect()
+    const client = await pool.connect();
     payment_id = await client.query("insert into payments(status,amount) values(false,"+total+") returning id;");
     payment_id = payment_id['rows'][0]['id']; 
-    await client.end();
 
-
+    client.release();
 
      //send firebase notification
     const message = {
@@ -306,8 +360,11 @@ app.get("/notif",async(req,res)=>{
     res.send({"Value":"Success"});
 });
 
+
+
+
 // Temp root url
-app.get('/', (req, res) => {
+app.get('/',async (req, res) => {
   res.send('Hello World!')
 })
 

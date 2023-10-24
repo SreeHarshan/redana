@@ -7,11 +7,9 @@ import 'global.dart';
 
 // ignore: must_be_immutable
 class Cart extends StatefulWidget {
-  List<Dish> cart_items;
-  String? user_name, user_email, hotel_name;
+  Cart_obj obj;
 
-  Cart(this.user_email, this.user_name, this.hotel_name, this.cart_items,
-      {super.key});
+  Cart(this.obj, {super.key});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -30,7 +28,7 @@ class _cart extends State<Cart> {
   void initState() {
     super.initState();
 
-    q = List.generate(widget.cart_items.length, (index) => 1);
+    q = List.generate(widget.obj.cart_items!.length, (index) => 1);
   }
 
   // ignore: non_constant_identifier_names
@@ -50,7 +48,7 @@ class _cart extends State<Cart> {
   int _cart_total() {
     int tot = 0;
     for (int i = 0; i < q.length; i++) {
-      tot += widget.cart_items[i].price * q[i];
+      tot += widget.obj.cart_items![i].price * q[i];
     }
 
     return tot;
@@ -64,13 +62,13 @@ class _cart extends State<Cart> {
     try {
       var url = Uri.parse(server_address + api);
       var items = {};
-      for (var it in widget.cart_items) {
-        items[it.name] = q[widget.cart_items.indexOf(it)];
+      for (var it in widget.obj.cart_items!) {
+        items[it.name] = q[widget.obj.cart_items!.indexOf(it)];
       }
       var body = {
-        "user_name": widget.user_name,
-        "user_email": widget.user_email,
-        "hotel_name": widget.hotel_name,
+        "user_name": widget.obj.user_name,
+        "user_email": widget.obj.user_email,
+        "hotel_name": widget.obj.hotel_name,
         "order_items": convert.jsonEncode(items),
         "total": _cart_total(),
       };
@@ -167,7 +165,7 @@ class _cart extends State<Cart> {
         ),
         body:
             // Check if cart is empty
-            q.isNotEmpty
+            widget.obj.cart_items != null
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -175,7 +173,7 @@ class _cart extends State<Cart> {
                           child: Column(
                         children: <Widget>[
                           ListView.builder(
-                              itemCount: widget.cart_items.length,
+                              itemCount: widget.obj.cart_items!.length,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
@@ -194,7 +192,8 @@ class _cart extends State<Cart> {
                                               Icons.crop_square_sharp,
                                               color:
                                                   // check vegan
-                                                  widget.cart_items[index].vegan
+                                                  widget.obj.cart_items![index]
+                                                          .vegan
                                                       ? Colors.green
                                                       : Colors.red,
                                               size: 32,
@@ -202,7 +201,9 @@ class _cart extends State<Cart> {
                                             Icon(Icons.circle,
                                                 color:
                                                     // check vegan
-                                                    widget.cart_items[index]
+                                                    widget
+                                                            .obj
+                                                            .cart_items![index]
                                                             .vegan
                                                         ? Colors.green
                                                         : Colors.red,
@@ -211,12 +212,12 @@ class _cart extends State<Cart> {
                                         ),
 
                                         // Name
-                                        title:
-                                            Text(widget.cart_items[index].name),
+                                        title: Text(
+                                            widget.obj.cart_items![index].name),
 
                                         // Price
                                         subtitle: Text(
-                                            "₹${widget.cart_items[index].price * q[index]}"),
+                                            "₹${widget.obj.cart_items![index].price * q[index]}"),
                                       ),
 
                                       // Change quantity
