@@ -22,8 +22,8 @@ class UserHome extends StatefulWidget {
 
 // ignore: camel_case_types
 class _userhome extends State<UserHome> {
-  Future<List<Hotel>>? hotels;
-
+  late Future<List<Hotel>> hotels;
+  late List<Hotel> hotels_list;
   //For scaffold drawer check
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -63,7 +63,9 @@ class _userhome extends State<UserHome> {
       throw Exception(e);
     }
 
-    setState(() {});
+    setState(() {
+      hotels_list = _hotels;
+    });
 
     return _hotels;
   }
@@ -123,6 +125,19 @@ class _userhome extends State<UserHome> {
 
     Navigator.pop(context);
     Navigator.pop(context);
+  }
+
+  Hotel getHotelByName(String name) {
+    Hotel h = Hotel(name, "", "");
+    print("getting hotel" + name);
+
+    for (var el in hotels_list) {
+      if (el.name == name) {
+        return el;
+      }
+    }
+
+    return h;
   }
 
   void _onNavItemTap(int index) {
@@ -216,8 +231,7 @@ class _userhome extends State<UserHome> {
             // Carousal
             FutureBuilder(
                 future: carousal_items,
-                builder: (context, AsyncSnapshot<List<String>> snapshot) {
-                  print(snapshot.data);
+                builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
                       snapshot.hasData) {
                     return Column(children: <Widget>[
@@ -237,14 +251,13 @@ class _userhome extends State<UserHome> {
                             builder: (BuildContext context) {
                               return GestureDetector(
                                   onTap: () {
-                                    /*
                                     Navigator.push(
                                         context,
-                                        MaterialPageRoute(//TODO add two future and get hotel from there
+                                        MaterialPageRoute(
                                             builder: (context) => HotelPage(
                                                 widget.useraccount.email,
                                                 widget.useraccount.displayName,
-                                                )));*/
+                                                getHotelByName(i.value))));
                                   },
                                   child: Container(
                                       margin: const EdgeInsets.symmetric(
